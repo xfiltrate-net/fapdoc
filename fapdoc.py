@@ -54,7 +54,7 @@ if __name__ == "__main__":
     # list findings
     if args.audit:
         print("[-] Selected audit: %s" % console.audit_name(pdoc, args.audit))
-        if not args.finding or not args.export:
+        if not args.finding and not args.export:
             console.list_findings(pdoc, args.audit)
             
     # Show finding
