@@ -39,31 +39,45 @@ class plugin(base):
     def export(self, finding, screenshots):
         """ Create new csv """
         
-        header = []
-        data   = []
-        
+        try:
+            header = self.config["columns"].replace(" ","").split(",")
+            print("header set ok")
+        except:
+            header = []
+            
+        data = []
         file_empty = True
                 
         # opening the csv file
         if exists(self.config["output_file"]):
-            with open(self.config["output_file"], 'r', encoding='UTF8') as csv_file:
-                # init reader
-                csv_reader = csv.DictReader(csv_file)
-                dict_from_csv = dict(list(csv_reader)[0])
-                header = list(dict_from_csv.keys())
-                if len(header) > 0:
-                    # allow to append data without header
-                    file_empty = False
-
-        for key in finding:
-            if not key in self.unwanted_data:
-                if file_empty:
-                    # Add value to header
-                    header.append(key)
+            try:
+                with open(self.config["output_file"], 'r', encoding='UTF8') as csv_file:
+                    # init reader
+                    csv_reader = csv.DictReader(csv_file)
                     
-                # Add value to row  
-                data.append(finding[key])
+                    # get header from file
+                    header_new = list(dict(list(csv_reader)[0]).keys())
+                    
+                    if len(header_new) > 0:
+                        # replace user defined header with existent one
+                        header = header_new
+                        # allow to append data without header
+                        file_empty = False
+            except:
+                pass
         
+        if len(header) <= 0:
+            # generate header from finding
+            for key in finding:
+                if not key in self.unwanted_data:
+                    header.append(key)
+            
+        for key in header:
+            try:
+                data.append(finding[key])
+            except:
+                data.append("")
+            
         with open(self.config["output_file"], 'a+', encoding='UTF8') as f:
             # init writer
             writer = csv.writer(f)
