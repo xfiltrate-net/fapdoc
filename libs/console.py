@@ -26,7 +26,6 @@ def audit_name(pwndoc, audit_id):
 
 def list_audits(pwndoc):
     """ Print available pwndoc audits """
-    print("[-] Available audits:")
     
     for document in pwndoc.audits:
         print ("\t%s - %s" % (document["_id"], document["name"]))

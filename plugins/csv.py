@@ -29,19 +29,39 @@ class plugin(base):
     def test(self):
         """ Get all projects viewable by user. """
         try:
-            with open(self.config["output_file"], 'w', encoding='UTF8') as f:
+            with open(self.config["output_path"], 'w', encoding='UTF8') as f:
                 writer = csv.writer(f)
         except:
             return False
         
         return "ok"
 
+    def importdata(self, audit):
+        """ Import csv file """
+
+        reader = csv.DictReader(open(self.config["import_path"]))
+
+        findings = {}
+        for row in reader:
+            key = row.pop('title')
+            if key in findings:
+                pass
+
+            findings[key] = row
+
+
+        for fin in findings:
+            findings[fin]["title"] = fin
+            self.pwndoc.add_finding(audit, findings[fin])
+
+        return True
+
     def export(self, finding, screenshots):
         """ Create new csv """
         
         try:
             header = self.config["columns"].replace(" ","").split(",")
-            print("header set ok")
+
         except:
             header = []
             
@@ -49,9 +69,9 @@ class plugin(base):
         file_empty = True
                 
         # opening the csv file
-        if exists(self.config["output_file"]):
+        if exists(self.config["output_path"]):
             try:
-                with open(self.config["output_file"], 'r', encoding='UTF8') as csv_file:
+                with open(self.config["output_path"], 'r', encoding='UTF8') as csv_file:
                     # init reader
                     csv_reader = csv.DictReader(csv_file)
                     
@@ -78,7 +98,7 @@ class plugin(base):
             except:
                 data.append("")
             
-        with open(self.config["output_file"], 'a+', encoding='UTF8') as f:
+        with open(self.config["output_path"], 'a+', encoding='UTF8') as f:
             # init writer
             writer = csv.writer(f)
 

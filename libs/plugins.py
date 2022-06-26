@@ -18,11 +18,11 @@
 import importlib
 import traceback
 
-def import_plugin(plugin_name, config):
+def import_plugin(plugin_name, pwndoc, config):
     try:
         module = importlib.import_module("plugins.%s" % plugin_name)
         class_ = getattr(module, "plugin")
-        plugin = class_(config[plugin_name])
+        plugin = class_(pwndoc, config[plugin_name])
             
         return plugin
                             
@@ -34,8 +34,9 @@ class base():
     """
     base plugin template
     """
-    def __init__(self, config):
+    def __init__(self, pwndoc, config):
         
         self.unwanted_data = ["_id","title","identifier", "customFields", "status", "paragraphs"]
         self.config = config
+        self.pwndoc = pwndoc
         self.init()

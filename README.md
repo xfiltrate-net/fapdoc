@@ -1,6 +1,7 @@
 # fapdoc
 
-fapdoc is an export/import tool for pwndoc, it allow exporting pwndoc's findings to different formats such as csv.
+fapdoc is an export/import tool for pwndoc, it allow exporting pwndoc's findings to different formats.
+Currently importing is supported from csv and burpsuite, exporting is supported on csv and jira.
 
 ## Setup
 
@@ -46,7 +47,13 @@ $ ./fapdoc.py -a [audit_id] -f [finding_id] -e jira
 Export an audit to csv:
 
 ```
-$ ./fapdoc.py -a [audit_id] -e csv
+$ ./fapdoc.py -a [audit_id] -e csv export.csv
+```
+
+Import findings from burpsuite:
+
+```
+$ ./fapdoc.py -a [audit_id] -i burpsuite burp_report.xml
 ```
 
 ## Donations

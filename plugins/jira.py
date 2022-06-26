@@ -42,6 +42,11 @@ class plugin(base):
         
         return out
 
+    def importdata(self, audit):
+        print ("[!] This plugin doesn't support importing")
+
+        return False
+
     def export(self, finding, screenshots):
         """ Create new issue on jira """
         description = ""
@@ -65,21 +70,22 @@ class plugin(base):
                     description += "*%s*\n%s\n\n" % (value, finding[value])
         
         issue_dict = {
-            'project': {'id': self.config["project_id"]},
-            'assignee': {'name': self.config["assignee"]},
-            'summary': finding["title"],
-            'issuetype': {'name': 'Vulnerability'},
+            'project'    : {'id': self.config["project_id"]},
+            'assignee'   : {'name': self.config["assignee"]},
+            'summary'    : finding["title"],
+            'issuetype'  : {'name': 'Vulnerability'},
             'description': description,
         }
         
         try:
             # Create new issue on jira
             new_issue = self.__jira.create_issue(fields=issue_dict)
-            print ("[+] New issue created.")
+            print ("[+] New issue created: \"%s\"". % finding["title"])
             
         except Exception as E:
+            print("[-] Issue creation failed \"%s\", Error:". % finding["title"])
             print(E)
-            print("[-] Issue creation failed, check your settings.")
+
             return False
     
         # upload finding's images

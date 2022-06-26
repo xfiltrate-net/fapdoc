@@ -19,6 +19,7 @@ from bson import ObjectId
 
 import pymongo
 
+
 class pwndoc:
     def __init__(self, url="mongodb://localhost:27017/"):
         self.dburl  = url
@@ -63,3 +64,18 @@ class pwndoc:
         for finding in self.get_audit(audit_id)["findings"]:
             if str(finding["_id"]) in finding_id:
                 return finding
+
+    def add_finding(self, audit_id, finding):
+        """ add finding """
+        objInstance = ObjectId(audit_id)
+
+        finding["_id"] = ObjectId()
+
+        self.db.audits.update_one(
+            { "_id": objInstance },
+            {
+                "$push": {
+                    "findings": finding
+                }
+            }
+        )

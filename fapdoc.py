@@ -26,16 +26,31 @@ import configparser
 if __name__ == "__main__":
     # Parse args
     parser = argparse.ArgumentParser()
-    parser.add_argument('--list',   '-l', dest='list_audits', action='store_true',help="List available pwndoc's audits", required=False)
-    parser.add_argument('--audit',  '-a', type=str, help="select an audit / list findings", required=False)
-    parser.add_argument('--finding','-f', type=str, help="print a finding", required=False)
-    parser.add_argument('--test',   '-t', type=str, help="test a plugin", required=False)
-    parser.add_argument('--export', '-e', type=str, help="export findings values: jira, csv", required=False)
+    parser.add_argument('--list',   '-l', help="List available pwndoc's audits", required=False, dest='list_audits', action='store_true')
+    parser.add_argument('--conf',   '-c', type=str,  help="specify configuration file", required=False)
+    parser.add_argument('--audit',  '-a', type=str,  help="select an audit / list findings", required=False)
+    parser.add_argument('--finding','-f', type=str,  help="print a finding", required=False)
+    parser.add_argument('--test',   '-t', type=str,  help="test a plugin", required=False)
+    parser.add_argument('--export', '-e', type=str,  help="export findings values: jira, csv", required=False)
+    parser.add_argument('--import', '-i', type=str,  help="import findings to pwndoc from: csv, burpsuite", dest='import_data', required=False)
+    parser.add_argument('file',           type=str,  help="replace input/output file from config", nargs='?', default="")
     args = parser.parse_args()
     
+    # Check configuration file
+    if args.conf:
+        config_file = args.conf
+    else:
+        config_file = "config.ini"
+
     # Parse configuration file
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    print("[-] Loading config...")
+    try:
+        config = configparser.ConfigParser()
+        config.read(config_file)
+        print ("[+] config ok.")
+    except:
+        print ("[!] Invalid configuration file.")
+        sys.exit(0)
     
     # Check mongodb connection
     print("[-] Connecting to mongodb...")
@@ -47,14 +62,23 @@ if __name__ == "__main__":
     else:
         print("[+] Success")
         
+    # replace input/output file in config
+    if not args.file == "":
+        if args.import_data:
+            config[args.import_data]["import_path"] = args.file
+
+        if args.export:
+            config[args.export]["output_path"] = args.file
+
     # list audits
     if args.list_audits:
+        print("[-] Available audits:")
         console.list_audits(pdoc)
     
     # list findings
     if args.audit:
         print("[-] Selected audit: %s" % console.audit_name(pdoc, args.audit))
-        if not args.finding and not args.export:
+        if not args.finding and not args.export and not args.import_data:
             console.list_findings(pdoc, args.audit)
             
     # Show finding
@@ -63,7 +87,7 @@ if __name__ == "__main__":
             print("[!] Missing --audit parameter.")
             sys.exit(0)
             
-        if not args.export:
+        if not args.export and not args.import_data:
             console.show_finding(pdoc, args.audit, args.finding)
     
     # Test plugin
@@ -75,7 +99,7 @@ if __name__ == "__main__":
 
     # Export to plugin
     if args.export:
-        plugin = plugins.import_plugin(args.export, config)
+        plugin = plugins.import_plugin(args.export, pdoc, config)
 
         if not args.audit:
             print("[!] Missing --audit parameter.")
@@ -96,5 +120,19 @@ if __name__ == "__main__":
                 print("[+] Done.")
             else:
                 print("[!] Error.")
-            
+
+    # import from plugin
+    if args.import_data:
+        plugin = plugins.import_plugin(args.import_data, pdoc, config)
+
+        if not args.audit:
+            print("[!] Missing --audit parameter.")
+            sys.exit(0)
+
+        #pdoc.add_finding(args.audit)
+        if plugin.importdata(args.audit):
+            print("[+] Done.")
+        else:
+            print("[!] Error.")
+
     sys.exit(1)
